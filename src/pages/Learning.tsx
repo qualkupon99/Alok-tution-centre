@@ -94,7 +94,7 @@ const Learning = () => {
               <p className="text-muted">Content is currently being uploaded. Please check back later or contact administration.</p>
             </div>
           ) : (
-            <div className="grid" style={{ gridTemplateColumns: '280px 1fr', gap: '2rem', alignItems: 'start' }}>
+            <div className="learning-grid">
               
               {/* Sidebar: Sections */}
               <div className="card" style={{ padding: '1.5rem', position: 'sticky', top: '100px' }}>

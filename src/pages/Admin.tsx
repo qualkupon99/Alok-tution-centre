@@ -286,7 +286,7 @@ const Admin = () => {
 
           {/* TAB 1: GALLERY MANAGEMENT */}
           {activeTab === 'gallery' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 2fr', gap: '2.5rem', alignItems: 'start' }}>
+            <div className="admin-grid">
               
               {/* Form Add Photo */}
               <div className="card" style={{ padding: '2rem' }}>
@@ -373,7 +373,7 @@ const Admin = () => {
 
           {/* TAB 2: VIDEOS (LEARNING) MANAGEMENT */}
           {activeTab === 'videos' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 2fr', gap: '2.5rem', alignItems: 'start' }}>
+            <div className="admin-grid">
               
               {/* Form Add Video */}
               <div className="card" style={{ padding: '2rem' }}>
