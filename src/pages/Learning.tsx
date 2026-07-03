@@ -38,24 +38,46 @@ const Learning = () => {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
   const [activeSection, setActiveSection] = useState<string>('All');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('atc_learning_videos');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setVideos(parsed);
-        if (parsed.length > 0) setSelectedVideo(parsed[0]);
-      } catch (e) {
+    fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/videos')
+      .then(res => {
+        if (res.status === 404) {
+          fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/videos', {
+            method: 'POST',
+            body: JSON.stringify(DEFAULT_VIDEOS)
+          });
+          return DEFAULT_VIDEOS;
+        }
+        return res.json();
+      })
+      .then(data => {
+        setVideos(data);
+        if (data.length > 0) setSelectedVideo(data[0]);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
         setVideos(DEFAULT_VIDEOS);
-        setSelectedVideo(DEFAULT_VIDEOS[0]);
-      }
-    } else {
-      localStorage.setItem('atc_learning_videos', JSON.stringify(DEFAULT_VIDEOS));
-      setVideos(DEFAULT_VIDEOS);
-      setSelectedVideo(DEFAULT_VIDEOS[0]);
-    }
+        if (DEFAULT_VIDEOS.length > 0) setSelectedVideo(DEFAULT_VIDEOS[0]);
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <div style={{ border: '4px solid #f3f3f3', borderTop: '4px solid var(--primary)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   const getEmbedUrl = (url: string) => {
     let videoId = '';

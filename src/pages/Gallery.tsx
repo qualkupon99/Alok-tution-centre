@@ -14,23 +14,47 @@ const DEFAULT_GALLERY = [
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [images, setImages] = useState<typeof DEFAULT_GALLERY>(DEFAULT_GALLERY);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('atc_gallery_images');
-    if (stored) {
-      try {
-        setImages(JSON.parse(stored));
-      } catch (e) {
+    fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/gallery')
+      .then(res => {
+        if (res.status === 404) {
+          fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/gallery', {
+            method: 'POST',
+            body: JSON.stringify(DEFAULT_GALLERY)
+          });
+          return DEFAULT_GALLERY;
+        }
+        return res.json();
+      })
+      .then(data => {
+        setImages(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
         setImages(DEFAULT_GALLERY);
-      }
-    } else {
-      localStorage.setItem('atc_gallery_images', JSON.stringify(DEFAULT_GALLERY));
-      setImages(DEFAULT_GALLERY);
-    }
+        setLoading(false);
+      });
   }, []);
 
   const openLightbox = (id: number) => setSelectedImage(id);
   const closeLightbox = () => setSelectedImage(null);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <div style={{ border: '4px solid #f3f3f3', borderTop: '4px solid var(--primary)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container animate-fade-in-up">

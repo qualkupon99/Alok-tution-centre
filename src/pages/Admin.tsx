@@ -74,23 +74,20 @@ const Admin = () => {
 
   // Load data on mount
   useEffect(() => {
-    // Gallery
-    const storedGallery = localStorage.getItem('atc_gallery_images');
-    if (storedGallery) {
-      try { setGallery(JSON.parse(storedGallery)); } catch(e) { setGallery(DEFAULT_GALLERY); }
-    } else {
-      localStorage.setItem('atc_gallery_images', JSON.stringify(DEFAULT_GALLERY));
-      setGallery(DEFAULT_GALLERY);
-    }
-
-    // Videos
-    const storedVideos = localStorage.getItem('atc_learning_videos');
-    if (storedVideos) {
-      try { setVideos(JSON.parse(storedVideos)); } catch(e) { setVideos(DEFAULT_VIDEOS); }
-    } else {
-      localStorage.setItem('atc_learning_videos', JSON.stringify(DEFAULT_VIDEOS));
-      setVideos(DEFAULT_VIDEOS);
-    }
+    // Fetch both gallery and videos from DB
+    Promise.all([
+      fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/gallery').then(res => res.status === 404 ? DEFAULT_GALLERY : res.json()),
+      fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/videos').then(res => res.status === 404 ? DEFAULT_VIDEOS : res.json())
+    ])
+      .then(([galleryData, videosData]) => {
+        setGallery(galleryData);
+        setVideos(videosData);
+      })
+      .catch(err => {
+        console.error(err);
+        setGallery(DEFAULT_GALLERY);
+        setVideos(DEFAULT_VIDEOS);
+      });
 
     // Auth status session check
     const sessionAuth = sessionStorage.getItem('atc_admin_auth');
@@ -143,7 +140,12 @@ const Admin = () => {
 
     const updatedGallery = [newItem, ...gallery];
     setGallery(updatedGallery);
-    localStorage.setItem('atc_gallery_images', JSON.stringify(updatedGallery));
+    
+    // Save to kvdb.io
+    fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/gallery', {
+      method: 'POST',
+      body: JSON.stringify(updatedGallery)
+    });
 
     // Reset Form
     setNewImageAlt('');
@@ -160,7 +162,10 @@ const Admin = () => {
     if (window.confirm('Are you sure you want to delete this image?')) {
       const updatedGallery = gallery.filter(img => img.id !== id);
       setGallery(updatedGallery);
-      localStorage.setItem('atc_gallery_images', JSON.stringify(updatedGallery));
+      fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/gallery', {
+        method: 'POST',
+        body: JSON.stringify(updatedGallery)
+      });
     }
   };
 
@@ -183,7 +188,10 @@ const Admin = () => {
 
     const updatedVideos = [newVideo, ...videos];
     setVideos(updatedVideos);
-    localStorage.setItem('atc_learning_videos', JSON.stringify(updatedVideos));
+    fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/videos', {
+      method: 'POST',
+      body: JSON.stringify(updatedVideos)
+    });
 
     // Reset Form
     setVidTitle('');
@@ -201,7 +209,10 @@ const Admin = () => {
     if (window.confirm('Are you sure you want to delete this video lesson?')) {
       const updatedVideos = videos.filter(v => v.id !== id);
       setVideos(updatedVideos);
-      localStorage.setItem('atc_learning_videos', JSON.stringify(updatedVideos));
+      fetch('https://kvdb.io/8vmFqyCPbmJAXsKDEPxvc8/videos', {
+        method: 'POST',
+        body: JSON.stringify(updatedVideos)
+      });
     }
   };
 
@@ -251,7 +262,6 @@ const Admin = () => {
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ textAlign: 'left' }}>
             <h1>Admin Dashboard</h1>
-            <p>Update gallery photos and video lessons without any API configurations.</p>
           </div>
           <button 
             onClick={handleLogout} 
